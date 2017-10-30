@@ -2,35 +2,57 @@ pipeline {
   agent any
   tools { nodejs 'node-v6.11.3' }
 
+  parameters {
+      choice(choices: 'TEST\nPRODUCTION', description: 'Where are you deploying to?', name: 'EXTENSION_DEPLOY_TARGET_PARAM')
+  }
+
+  environment { 
+      EXTENSION_DEPLOY_TARGET = "${params.EXTENSION_DEPLOY_TARGET_PARAM}"
+  }
+    
   stages {
     stage('Checkout') {
       steps {
           checkout scm
       }
     }
+    
     stage('Install dependencies') {
       steps {
         sh 'yarn install --ignore-engines'
       }
     }
+    
     stage('Lint') {
       steps {
          echo 'ToDo'
       }
     }
+    
     stage('Test') {
       steps {
           echo 'yarn run test'
       }
     }
+    
     stage('Build') {
       steps {
         sh 'yarn run build'
       }
     }
+    
     stage('Deploy') {
+      when {
+          environment name: 'EXTENSION_DEPLOY_TARGET', value: 'PRODUCTION'
+      }
       steps {
-          echo 'Deploying....'
+        echo "Start Deploy $EXTENSION_DEPLOY_TARGET"
+      }
+    }
+    
+    stage('Done') {
+      steps {
+        echo 'Done build'
       }
     }
   }
